@@ -5,7 +5,7 @@ import "exec"    as exec;
 import "request" as request;
 import "crypto"  as crypto;
 
-function run_async(cmd, args) {
+function exec_future(cmd, args) {
     return Future(function (resolve, reject) {
         exec.run(cmd, args, function (err, res) {
             if (err != null) { reject(err); }
@@ -26,6 +26,29 @@ function host_triple() {
     return os + "-" + arch;
 }
 
+function extract_cmd(archive, dest, archive_type, strip) {
+    if (sys.platform == "windows") {
+        var args = ["-xf", archive, "-C", dest];
+        if (strip > 0) { args.push("--strip-components=" + str(strip)); }
+        return ["C:\\Windows\\System32\\tar.exe", args];
+    }
+    if (archive_type == "nupkg" or archive_type == "zip") {
+        return ["unzip", ["-q", "-o", archive, "-d", dest]];
+    }
+    var targs = ["-xf", archive, "-C", dest];
+    if (strip > 0) { targs.push("--strip-components=" + str(strip)); }
+    return ["tar", targs];
+}
+
+function copy_cmd(src, dest) {
+    if (sys.platform == "windows") {
+        var ps = "Copy-Item -Path '" + src + "/*' -Destination '" + dest
+        + "' -Recurse -Force";
+        return ["powershell", ["-NoProfile", "-Command", ps]];
+    }
+    return ["sh", ["-c", "cp -R \"" + src + "\"/* \"" + dest + "/\""]];
+}
+
 function install() {
     var triple   = host_triple();
     var deps_dir = "deps/" + triple;
@@ -42,24 +65,28 @@ function install() {
     }
 
     var entry = meta.ORT_RELEASES[triple];
-    print("install: target  =", triple);
-    print("install: ORT     =", meta.ORT_VERSION);
-    print("install: url     =", entry["url"]);
+    print("install: target  = " + triple);
+    print("install: ORT     = " + meta.ORT_VERSION);
+    print("install: url     = " + entry["url"]);
 
-    if (not io.exists(deps_dir)) { io.mkdir(deps_dir); }
+    io.mkdir(deps_dir);
+    io.mkdir(deps_dir + "/lib");
+    io.mkdir(deps_dir + "/include");
 
-    var ext     = entry["archive_type"];
-    var archive = deps_dir + "/_ort." + ext;
+    var archive_type = entry["archive_type"];
+    var archive = deps_dir + "/_ort." + archive_type;
+
     print("install: downloading -> " + archive);
     wait request.download(entry["url"], archive,
-                          { follow_redirect: true, max_redirect: 5 });
+    { follow_redirect: true, max_redirect: 5 });
+    print("install:   " + str(io.stat(archive)["bytes"]) + " bytes");
 
     var bytes  = io.read_file(archive);
     var actual = crypto.hash("sha256", bytes);
     var expect = entry["sha256"];
     if (expect == "" or expect.starts_with("TODO")) {
         print("install: WARNING — sha256 not pinned for " + triple);
-        print("install: computed sha256 = " + actual);
+        print("install:   computed sha256 = " + actual);
         print("install:   (copy that into install-metadata.bnl to enable verification)");
     } else if (actual != expect) {
         io.remove(archive);
@@ -71,13 +98,42 @@ function install() {
         print("install: sha256 ok (" + actual.byte_slice(0, 12) + "...)");
     }
 
-    print("install: extracting -> " + deps_dir);
-    wait run_async("tar",
-        ["-xf", archive, "-C", deps_dir, "--strip-components=1"]);
+    if (archive_type == "tgz") {
+        print("install: extracting -> " + deps_dir);
+        var pair = extract_cmd(archive, deps_dir, archive_type, 1);
+        wait exec_future(pair[0], pair[1]);
+    } else {
+        var tmp = deps_dir + "/_unpack";
+        if (io.exists(tmp)) { io.remove(tmp); }
+        io.mkdir(tmp);
+
+        print("install: extracting -> " + tmp);
+        var pair = extract_cmd(archive, tmp, archive_type, 0);
+        wait exec_future(pair[0], pair[1]);
+
+        var src_lib = tmp + "/runtimes/win-x64/native";
+        var src_inc = tmp + "/build/native/include";
+        if (io.exists(src_lib)) {
+            print("install:   copying " + src_lib + " -> " + deps_dir + "/lib");
+            var cp = copy_cmd(src_lib, deps_dir + "/lib");
+            wait exec_future(cp[0], cp[1]);
+        }
+        if (io.exists(src_inc)) {
+            print("install:   copying " + src_inc + " -> " + deps_dir + "/include");
+            var cp2 = copy_cmd(src_inc, deps_dir + "/include");
+            wait exec_future(cp2[0], cp2[1]);
+        }
+        io.remove(tmp);
+    }
 
     io.remove(archive);
-    print("install: done.");
-    print("install:  " + deps_dir + "/include and lib/ are ready; you can now run build.ps1 / build.sh.");
+
+    if (not io.exists(deps_dir + "/include/onnxruntime_c_api.h")) {
+        print("install: ERROR — finished but " + deps_dir
+        + "/include/onnxruntime_c_api.h is missing");
+        return;
+    }
+    print("install: done. " + deps_dir + "/include and lib/ are ready.");
 }
 
 install();

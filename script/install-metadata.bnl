@@ -1,0 +1,28 @@
+var ORT_VERSION = "1.26.0";
+
+var ORT_RELEASES = {
+    "windows-x64": {
+        "url":              "https://github.com/microsoft/onnxruntime/releases/download/v" + ORT_VERSION + "/onnxruntime-win-x64-" + ORT_VERSION + ".zip",
+        "sha256":           "6ebe99b5564bf4d029b6e93eac9ff423682b6212eade769e9ca3f685eaf500b4",
+        "archive_type":     "zip",
+        "strip_components": 1
+    },
+    "linux-x64": {
+        "url":              "https://github.com/microsoft/onnxruntime/releases/download/v" + ORT_VERSION + "/onnxruntime-linux-x64-" + ORT_VERSION + ".tgz",
+        "sha256":           "TODO_FILL_ME_FROM_RELEASE_PAGE",
+        "archive_type":     "tgz",
+        "strip_components": 1
+    },
+    "darwin-arm64": {
+        "url":              "https://github.com/microsoft/onnxruntime/releases/download/v" + ORT_VERSION + "/onnxruntime-osx-arm64-" + ORT_VERSION + ".tgz",
+        "sha256":           "TODO_FILL_ME_FROM_RELEASE_PAGE",
+        "archive_type":     "tgz",
+        "strip_components": 1
+    },
+    "darwin-x64": {
+        "url":              "https://github.com/microsoft/onnxruntime/releases/download/v" + ORT_VERSION + "/onnxruntime-osx-x86_64-" + ORT_VERSION + ".tgz",
+        "sha256":           "TODO_FILL_ME_FROM_RELEASE_PAGE",
+        "archive_type":     "tgz",
+        "strip_components": 1
+    }
+};

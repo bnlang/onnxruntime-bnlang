@@ -1,0 +1,49 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": { "major": 3, "minor": 20 },
+
+    "configurePresets": [
+        {
+            "name":      "windows-x64",
+            "binaryDir": "${sourceDir}/build/windows-x64",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE":            "Release",
+                "BNL_TARGET_TRIPLE":           "windows-x64",
+                "CMAKE_MSVC_RUNTIME_LIBRARY":  "MultiThreadedDLL"
+            }
+        },
+        {
+            "name":      "linux-x64",
+            "binaryDir": "${sourceDir}/build/linux-x64",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE":  "Release",
+                "BNL_TARGET_TRIPLE": "linux-x64"
+            }
+        },
+        {
+            "name":      "darwin-arm64",
+            "binaryDir": "${sourceDir}/build/darwin-arm64",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE":         "Release",
+                "BNL_TARGET_TRIPLE":        "darwin-arm64",
+                "CMAKE_OSX_ARCHITECTURES":  "arm64"
+            }
+        },
+        {
+            "name":      "darwin-x64",
+            "binaryDir": "${sourceDir}/build/darwin-x64",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE":         "Release",
+                "BNL_TARGET_TRIPLE":        "darwin-x64",
+                "CMAKE_OSX_ARCHITECTURES":  "x86_64"
+            }
+        }
+    ],
+
+    "buildPresets": [
+        { "name": "windows-x64",  "configurePreset": "windows-x64",  "configuration": "Release" },
+        { "name": "linux-x64",    "configurePreset": "linux-x64",    "configuration": "Release" },
+        { "name": "darwin-arm64", "configurePreset": "darwin-arm64", "configuration": "Release" },
+        { "name": "darwin-x64",   "configurePreset": "darwin-x64",   "configuration": "Release" }
+    ]
+}

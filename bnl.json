@@ -1,0 +1,15 @@
+{
+    "name":        "onnxruntime-bnlang",
+    "version":     "1.0.0",
+    "description": "Bnlang binding for ONNX Runtime. Unofficial third-party binding; consumes official ORT prebuilts from github.com/microsoft/onnxruntime/releases.",
+    "license":     "MIT",
+    "repository":  "https://github.com/bnlang/onnxruntime-bnlang",
+    "dependencies": {},
+    "main":      "lib/index.bnl",
+    "targets": {
+        "darwin-arm64": "build/darwin-arm64/onnxruntime-bnlang.dylib",
+        "darwin-x64":   "build/darwin-x64/onnxruntime-bnlang.dylib",
+        "linux-x64":    "build/linux-x64/onnxruntime-bnlang.so",
+        "windows-x64":  "build/windows-x64/onnxruntime-bnlang.dll"
+    }
+}

@@ -1,0 +1,29 @@
+import "sys"  as sys;
+import "exec" as exec;
+
+function host_triple() {
+    var os = sys.platform;
+    if (os == "macos") { os = "darwin"; }
+
+    var arch = sys.arch;
+    if (arch == "x86_64") { arch = "x64"; }
+
+    return os + "-" + arch;
+}
+
+var TRIPLE = host_triple();
+print("build: preset =", TRIPLE);
+
+// Configure
+exec.run("cmake", ["--preset", TRIPLE], function (err, res) {
+    if (err != null)        { print("build: configure failed:", err);                 return; }
+    if (res.code != 0)      { print("build: configure exited", res.code, res.stderr); return; }
+
+    // Build
+    exec.run("cmake", ["--build", "build/" + TRIPLE, "--config", "Release"],
+        function (berr, bres) {
+            if (berr != null)    { print("build: build failed:", berr); }
+            else if (bres.code != 0) { print("build: build exited", bres.code, bres.stderr); }
+            else                 { print("build: done -> build/" + TRIPLE); }
+        });
+});

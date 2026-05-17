@@ -1,0 +1,44 @@
+# .bpmignore — gitignore-syntax denylist applied to the tarball-relative
+# paths during `bpm publish`.
+#
+# What's already in the tarball before this filter runs:
+#   - The plugin binary, renamed to the canonical filename at the root
+#   - Everything under build/<triple>/ flattened to the tarball root
+#   - README* / LICENSE* / NOTICES* at the root
+#   - The `main` file + its directory (e.g. lib/index.bnl + lib/*) at
+#     their project-relative paths
+#
+# This file scrubs the CMake / MSBuild noise that the binDir flatten
+# would otherwise drag in. Patterns are gitignore-style and are matched
+# against the path the file will have *inside the tarball*.
+
+# Anything bpm download writes that we don't want re-shipped.
+deps
+
+# CMake / MSBuild build artefacts (all relative to tarball root, since
+# build/<triple>/ is flattened to root).
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.obj
+*.lib
+*.exp
+*.pdb
+*.ilk
+*.vcxproj
+*.vcxproj.filters
+*.slnx
+*.dir/
+ALL_BUILD*
+ZERO_CHECK*
+
+# MSBuild intermediate / output dirs that end up flattened too.
+Release/
+Debug/
+x64/
+x86/
+
+# Machine-specific IDE leftovers in case any sneak in.
+.vscode/
+.idea/
+CMakeUserPresets.json

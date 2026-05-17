@@ -1,0 +1,28 @@
+import "onnxruntime-bnlang" as native;
+
+function open(path, options) {
+    var handle = native.session_open(path, options);
+    var self = { handle: handle };
+
+    self.info = function () {
+        return native.session_info(self.handle);
+    };
+    self.run = function (feeds) {
+        return native.session_run(self.handle, feeds);
+    };
+    self.close = function () {
+        native.session_close(self.handle);
+        self.handle = -1;
+    };
+
+    // ---- Bangla method aliases ----
+    self.তথ্য       = self.info;     // info
+    self.চালান      = self.run;      // run
+    self.বন্ধ_করুন   = self.close;    // close
+
+    return self;
+}
+var InferenceSession = {
+    open:   open,
+    খুলুন:   open
+};

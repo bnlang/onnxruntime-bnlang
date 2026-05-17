@@ -1,0 +1,83 @@
+import "./install-metadata.bnl" as meta;
+import "sys"     as sys;
+import "io"      as io;
+import "exec"    as exec;
+import "request" as request;
+import "crypto"  as crypto;
+
+function run_async(cmd, args) {
+    return Future(function (resolve, reject) {
+        exec.run(cmd, args, function (err, res) {
+            if (err != null) { reject(err); }
+            else if (res.code != 0) {
+                reject(cmd + " exited " + str(res.code) + ": " + res.stderr);
+            } else {
+                resolve(res);
+            }
+        });
+    });
+}
+
+function host_triple() {
+    var os = sys.platform;
+    if (os == "macos") { os = "darwin"; }
+    var arch = sys.arch;
+    if (arch == "x86_64") { arch = "x64"; }
+    return os + "-" + arch;
+}
+
+function install() {
+    var triple   = host_triple();
+    var deps_dir = "deps/" + triple;
+
+    if (not meta.ORT_RELEASES.has(triple)) {
+        print("install: no prebuilt for triple", triple);
+        print("         supported:", meta.ORT_RELEASES.keys());
+        return;
+    }
+    if (io.exists(deps_dir + "/include")) {
+        print("install: already installed at", deps_dir, "- nothing to do");
+        print("         (delete deps/" + triple + "/ to force a re-download)");
+        return;
+    }
+
+    var entry = meta.ORT_RELEASES[triple];
+    print("install: target  =", triple);
+    print("install: ORT     =", meta.ORT_VERSION);
+    print("install: url     =", entry["url"]);
+
+    if (not io.exists(deps_dir)) { io.mkdir(deps_dir); }
+
+    var ext     = entry["archive_type"];
+    var archive = deps_dir + "/_ort." + ext;
+    print("install: downloading -> " + archive);
+    wait request.download(entry["url"], archive,
+                          { follow_redirect: true, max_redirect: 5 });
+
+    var bytes  = io.read_file(archive);
+    var actual = crypto.hash("sha256", bytes);
+    var expect = entry["sha256"];
+    if (expect == "" or expect.starts_with("TODO")) {
+        print("install: WARNING — sha256 not pinned for " + triple);
+        print("install: computed sha256 = " + actual);
+        print("install:   (copy that into install-metadata.bnl to enable verification)");
+    } else if (actual != expect) {
+        io.remove(archive);
+        print("install: ERROR — sha256 mismatch");
+        print("         expected: " + expect);
+        print("         actual  : " + actual);
+        return;
+    } else {
+        print("install: sha256 ok (" + actual.byte_slice(0, 12) + "...)");
+    }
+
+    print("install: extracting -> " + deps_dir);
+    wait run_async("tar",
+        ["-xf", archive, "-C", deps_dir, "--strip-components=1"]);
+
+    io.remove(archive);
+    print("install: done.");
+    print("install:  " + deps_dir + "/include and lib/ are ready; you can now run build.ps1 / build.sh.");
+}
+
+install();

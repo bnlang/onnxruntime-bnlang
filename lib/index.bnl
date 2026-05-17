@@ -1,0 +1,28 @@
+import "onnxruntime-bnlang" as native;
+import "./session.bnl"      as _session;
+
+// Raw native re-exports
+var version           = native.version;
+var providers         = native.providers;
+var session_open      = native.session_open;
+var session_close     = native.session_close;
+var session_info      = native.session_info;
+var session_run       = native.session_run;
+
+// Tensor handle helpers
+var tensor_to_data    = native.tensor_to_data;
+var tensor_close      = native.tensor_close;
+
+// Ergonomic facade.
+var InferenceSession  = _session.InferenceSession;
+
+// ---- Bangla aliases
+var সংস্করণ              = version;          // version
+var প্রদানকারী           = providers;        // providers
+var সেশন_খুলুন           = session_open;     // session_open
+var সেশন_বন্ধ_করুন       = session_close;    // session_close
+var সেশন_তথ্য            = session_info;     // session_info
+var সেশন_চালান           = session_run;      // session_run
+var টেনসর_ডেটা           = tensor_to_data;   // tensor_to_data
+var টেনসর_বন্ধ_করুন      = tensor_close;     // tensor_close
+var অনুমান_সেশন          = InferenceSession; // InferenceSession

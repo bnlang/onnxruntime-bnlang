@@ -34,6 +34,12 @@ namespace ortb::tensor
 
     void tensor_close(int handle);
 
+    int tensor_argmax_last(int handle, int vocab);
+
+    int tensor_sample_last(int handle, int vocab,
+                           double temperature, int top_k,
+                           double top_p, double seed);
+
     void register_tensor_natives(const bnl_api *api, bnl_module *mod);
 
 } // namespace ortb::tensor

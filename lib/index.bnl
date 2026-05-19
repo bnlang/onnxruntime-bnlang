@@ -10,8 +10,10 @@ var session_info      = native.session_info;
 var session_run       = native.session_run;
 
 // Tensor handle helpers
-var tensor_to_data    = native.tensor_to_data;
-var tensor_close      = native.tensor_close;
+var tensor_to_data        = native.tensor_to_data;
+var tensor_close          = native.tensor_close;
+var tensor_argmax_last    = native.tensor_argmax_last;
+var tensor_sample_last    = native.tensor_sample_last;
 
 // Ergonomic facade.
 var InferenceSession  = _session.InferenceSession;

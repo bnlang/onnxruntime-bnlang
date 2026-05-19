@@ -1,6 +1,6 @@
 {
     "name":        "onnxruntime-bnlang",
-    "version":     "1.0.0",
+    "version":     "1.1.0",
     "description": "Bnlang binding for ONNX Runtime. Unofficial third-party binding; consumes official ORT prebuilts from github.com/microsoft/onnxruntime/releases.",
     "license":     "MIT",
     "repository":  "https://github.com/bnlang/onnxruntime-bnlang",

@@ -101,6 +101,36 @@ namespace ortb::session_options
             int n = static_cast<int>(get_number_or_throw(api, map, "inter_op_num_threads"));
             out.SetInterOpNumThreads(n);
         }
+        if (api->map_has(map, "graph_optimization_level"))
+        {
+            // Accept either a number (0..99) or a string (basic/extended/all/none).
+            bnl_value *v = api->map_get(api, map, "graph_optimization_level");
+            GraphOptimizationLevel lvl = ORT_ENABLE_ALL;
+            if (api->get_type(v) == BNL_TYPE_NUMBER)
+            {
+                int n = static_cast<int>(api->get_number(v));
+                if (n <= 0)       lvl = ORT_DISABLE_ALL;
+                else if (n == 1)  lvl = ORT_ENABLE_BASIC;
+                else if (n == 2)  lvl = ORT_ENABLE_EXTENDED;
+                else              lvl = ORT_ENABLE_ALL;
+            }
+            else if (api->get_type(v) == BNL_TYPE_STRING)
+            {
+                std::size_t sl = 0;
+                const char *sp = api->get_string(v, &sl);
+                std::string s(sp, sl);
+                if (s == "none" || s == "disable") lvl = ORT_DISABLE_ALL;
+                else if (s == "basic")             lvl = ORT_ENABLE_BASIC;
+                else if (s == "extended")          lvl = ORT_ENABLE_EXTENDED;
+                else if (s == "all")               lvl = ORT_ENABLE_ALL;
+                else throw std::runtime_error("graph_optimization_level: unknown '" + s + "'");
+            }
+            else
+            {
+                throw std::runtime_error("graph_optimization_level: must be number or string");
+            }
+            out.SetGraphOptimizationLevel(lvl);
+        }
 
         if (api->map_has(map, "execution_providers"))
         {
